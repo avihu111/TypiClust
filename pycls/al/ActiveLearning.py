@@ -76,6 +76,12 @@ class ActiveLearning:
             clf_model.penultimate_active = waslatent
             clf_model.train(wastrain)
 
+        elif self.cfg.ACTIVE_LEARNING.SAMPLING_FN.startswith("typiclust"):
+            from .typiclust import TypiClust
+            is_scan = self.cfg.ACTIVE_LEARNING.SAMPLING_FN.endswith('dc')
+            tpc = TypiClust(self.cfg, lSet, uSet, budgetSize=self.cfg.ACTIVE_LEARNING.BUDGET_SIZE, is_scan=is_scan)
+            activeSet, uSet = tpc.select_samples()
+
         elif self.cfg.ACTIVE_LEARNING.SAMPLING_FN == "dbal" or self.cfg.ACTIVE_LEARNING.SAMPLING_FN == "DBAL":
             activeSet, uSet = self.sampler.dbal(budgetSize=self.cfg.ACTIVE_LEARNING.BUDGET_SIZE, \
                 uSet=uSet, clf_model=clf_model,dataset=trainDataset)

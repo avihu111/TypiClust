@@ -21,6 +21,37 @@ from pycls.datasets.sampler import IndexedSequentialSampler
 from pycls.datasets.tiny_imagenet import TinyImageNet
 logger = lu.get_logger(__name__)
 
+class _RepeatSampler(object):
+    """ Sampler that repeats forever.
+    Args:
+        sampler (Sampler)
+    """
+
+    def __init__(self, sampler):
+        self.sampler = sampler
+
+    def __iter__(self):
+        while True:
+            yield from iter(self.sampler)
+
+
+class MultiEpochsDataLoader(torch.utils.data.DataLoader):
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._DataLoader__initialized = False
+        self.batch_sampler = _RepeatSampler(self.batch_sampler)
+        self._DataLoader__initialized = True
+        self.iterator = super().__iter__()
+
+    def __len__(self):
+        return len(self.batch_sampler.sampler)
+
+    def __iter__(self):
+        for i in range(len(self)):
+            yield next(self.iterator)
+
+
 class Data:
     """
     Contains all data related functions. For working with new dataset 
@@ -45,6 +76,7 @@ class Data:
         self.aug_method = cfg.DATASET.AUG_METHOD
         self.rand_augment_N = 1 if cfg is None else cfg.RANDAUG.N
         self.rand_augment_M = 5 if cfg is None else cfg.RANDAUG.M
+        self.num_workers = cfg.DATA_LOADER.NUM_WORKERS
 
     def about(self):
         """
@@ -100,8 +132,15 @@ class Data:
                 norm_mean = [0.1307,]
                 norm_std = [0.3081,]
             elif self.dataset == "TINYIMAGENET":
-                ops = [transforms.RandomResizedCrop(64)]
+                # ops = [transforms.RandomResizedCrop(64)]
+                ops = [transforms.RandomResizedCrop(64, scale=(0.5, 1.))]
+
                 # Using ImageNet values 
+                norm_mean = [0.485, 0.456, 0.406]
+                norm_std = [0.229, 0.224, 0.225]
+            elif self.dataset in ["IMAGENET", 'IMAGENET50', 'IMAGENET100', 'IMAGENET200']:
+                ops = [transforms.RandomResizedCrop(224, scale=(0.5, 1.))]
+                # Using ImageNet values
                 norm_mean = [0.485, 0.456, 0.406]
                 norm_std = [0.229, 0.224, 0.225]
             elif self.dataset in ["SVHN"]:
@@ -395,13 +434,19 @@ class Data:
 
         assert isinstance(indexes, np.ndarray), "Indexes has dtype: {} whereas expected is nd.array.".format(type(indexes))
         assert isinstance(batch_size, int), "Batchsize is expected to be of int type whereas currently it has dtype: {}".format(type(batch_size))
-        
+        while len(indexes) < batch_size:
+            orig_indexes = indexes
+            indexes = np.concatenate((indexes, orig_indexes))
+
         subsetSampler = SubsetRandomSampler(indexes)
         # # print(data)
         # if self.dataset == "IMAGENET":
         #     loader = DataLoader(dataset=data, batch_size=batch_size,sampler=subsetSampler, pin_memory=True)
         # else:
-        loader = DataLoader(dataset=data, batch_size=batch_size, sampler=subsetSampler)
+        batch_size = min(batch_size, len(indexes))
+
+        loader = MultiEpochsDataLoader(dataset=data, num_workers=8, batch_size=batch_size,
+                                       sampler=subsetSampler, pin_memory=True, drop_last=True)
         return loader
 
 
@@ -433,7 +478,7 @@ class Data:
         #     loader = DataLoader(dataset=data, batch_size=batch_size,sampler=subsetSampler,pin_memory=True)
         # else:
 
-        loader = DataLoader(dataset=data, batch_size=batch_size, sampler=subsetSampler, shuffle=False)
+        loader = MultiEpochsDataLoader(dataset=data, num_workers=self.num_workers, batch_size=batch_size, sampler=subsetSampler, shuffle=False, pin_memory=True)
         return loader
 
 
@@ -462,8 +507,7 @@ class Data:
             #np.random.shuffle(idx)
 
             test_sampler = SubsetRandomSampler(idx)
-
-            testLoader = DataLoader(data, batch_size=test_batch_size, sampler=test_sampler)
+            testLoader = MultiEpochsDataLoader(data, num_workers=self.num_workers, batch_size=test_batch_size, sampler=test_sampler, pin_memory=True)
             return testLoader
 
         else:

@@ -7,6 +7,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from copy import deepcopy
 
 # local
 
@@ -162,6 +163,17 @@ def main(cfg):
 
     lSet, uSet, valSet = data_obj.loadPartitions(lSetPath=cfg.ACTIVE_LEARNING.LSET_PATH, \
             uSetPath=cfg.ACTIVE_LEARNING.USET_PATH, valSetPath = cfg.ACTIVE_LEARNING.VALSET_PATH)
+    model = model_builder.build_model(cfg).cuda()
+    if len(lSet) == 0:
+        print('Labeled Set is Empty - Sampling an Initial Pool')
+        al_obj = ActiveLearning(data_obj, cfg)
+        activeSet, new_uSet = al_obj.sample_from_uSet(model, lSet, uSet, train_data)
+        print(f'Initial Pool is {activeSet}')
+        # Save current lSet, new_uSet and activeSet in the episode directory
+        # data_obj.saveSets(lSet, uSet, activeSet, cfg.EPISODE_DIR)
+        # Add activeSet to lSet, save new_uSet as uSet and update dataloader for the next episode
+        lSet = np.append(lSet, activeSet)
+        uSet = new_uSet
 
     print("Data Partitioning Complete. \nLabeled Set: {}, Unlabeled Set: {}, Validation Set: {}\n".format(len(lSet), len(uSet), len(valSet)))
     logger.info("Labeled Set: {}, Unlabeled Set: {}, Validation Set: {}\n".format(len(lSet), len(uSet), len(valSet)))
@@ -178,6 +190,9 @@ def main(cfg):
 
     # Construct the optimizer
     optimizer = optim.construct_optimizer(cfg, model)
+    opt_init_state = deepcopy(optimizer.state_dict())
+    model_init_state = deepcopy(model.state_dict().copy())
+
     print("optimizer: {}\n".format(optimizer))
     logger.info("optimizer: {}\n".format(optimizer))
 
@@ -241,6 +256,18 @@ def main(cfg):
         logger.info("Active Sampling Complete. After Episode {}:\nNew Labeled Set: {}, New Unlabeled Set: {}, Active Set: {}\n".format(cur_episode, len(lSet), len(uSet), len(activeSet)))
         print("================================\n\n")
         logger.info("================================\n\n")
+
+        if not cfg.ACTIVE_LEARNING.FINE_TUNE:
+            # start model from scratch
+            print('Starting model from scratch - ignoring existing weights.')
+            model = model_builder.build_model(cfg)
+            # Construct the optimizer
+            optimizer = optim.construct_optimizer(cfg, model)
+            print(model.load_state_dict(model_init_state))
+            print(optimizer.load_state_dict(opt_init_state))
+
+        os.remove(checkpoint_file)
+
 
 
 def train_model(train_loader, val_loader, model, optimizer, cfg):
@@ -316,19 +343,19 @@ def train_model(train_loader, val_loader, model, optimizer, cfg):
         plot_epoch_xvalues.append(cur_epoch+1)
         plot_epoch_yvalues.append(train_loss)
 
-        save_plot_values([plot_epoch_xvalues, plot_epoch_yvalues, plot_it_x_values, plot_it_y_values, val_acc_epochs_x, val_acc_epochs_y],\
-            ["plot_epoch_xvalues", "plot_epoch_yvalues", "plot_it_x_values", "plot_it_y_values","val_acc_epochs_x","val_acc_epochs_y"], out_dir=cfg.EPISODE_DIR, isDebug=False)
+        # save_plot_values([plot_epoch_xvalues, plot_epoch_yvalues, plot_it_x_values, plot_it_y_values, val_acc_epochs_x, val_acc_epochs_y],\
+        #     ["plot_epoch_xvalues", "plot_epoch_yvalues", "plot_it_x_values", "plot_it_y_values","val_acc_epochs_x","val_acc_epochs_y"], out_dir=cfg.EPISODE_DIR, isDebug=False)
         logger.info("Successfully logged numpy arrays!!")
 
         # Plot arrays
-        plot_arrays(x_vals=plot_epoch_xvalues, y_vals=plot_epoch_yvalues, \
-        x_name="Epochs", y_name="Loss", dataset_name=cfg.DATASET.NAME, out_dir=cfg.EPISODE_DIR)
-        
-        plot_arrays(x_vals=val_acc_epochs_x, y_vals=val_acc_epochs_y, \
-        x_name="Epochs", y_name="Validation Accuracy", dataset_name=cfg.DATASET.NAME, out_dir=cfg.EPISODE_DIR)
+        # plot_arrays(x_vals=plot_epoch_xvalues, y_vals=plot_epoch_yvalues, \
+        # x_name="Epochs", y_name="Loss", dataset_name=cfg.DATASET.NAME, out_dir=cfg.EPISODE_DIR)
+        #
+        # plot_arrays(x_vals=val_acc_epochs_x, y_vals=val_acc_epochs_y, \
+        # x_name="Epochs", y_name="Validation Accuracy", dataset_name=cfg.DATASET.NAME, out_dir=cfg.EPISODE_DIR)
 
-        save_plot_values([plot_epoch_xvalues, plot_epoch_yvalues, plot_it_x_values, plot_it_y_values, val_acc_epochs_x, val_acc_epochs_y], \
-                ["plot_epoch_xvalues", "plot_epoch_yvalues", "plot_it_x_values", "plot_it_y_values","val_acc_epochs_x","val_acc_epochs_y"], out_dir=cfg.EPISODE_DIR)
+        # save_plot_values([plot_epoch_xvalues, plot_epoch_yvalues, plot_it_x_values, plot_it_y_values, val_acc_epochs_x, val_acc_epochs_y], \
+        #         ["plot_epoch_xvalues", "plot_epoch_yvalues", "plot_it_x_values", "plot_it_y_values","val_acc_epochs_x","val_acc_epochs_y"], out_dir=cfg.EPISODE_DIR)
 
         print('Training Epoch: {}/{}\tTrain Loss: {}\tVal Accuracy: {}'.format(cur_epoch+1, cfg.OPTIM.MAX_EPOCH, round(train_loss, 4), round(val_set_acc, 4)))
 
@@ -339,14 +366,14 @@ def train_model(train_loader, val_loader, model, optimizer, cfg):
     print('\nWrote Best Model Checkpoint to: {}\n'.format(checkpoint_file.split('/')[-1]))
     logger.info('Wrote Best Model Checkpoint to: {}\n'.format(checkpoint_file))
 
-    plot_arrays(x_vals=plot_epoch_xvalues, y_vals=plot_epoch_yvalues, \
-        x_name="Epochs", y_name="Loss", dataset_name=cfg.DATASET.NAME, out_dir=cfg.EPISODE_DIR)
-
-    plot_arrays(x_vals=plot_it_x_values, y_vals=plot_it_y_values, \
-        x_name="Iterations", y_name="Loss", dataset_name=cfg.DATASET.NAME, out_dir=cfg.EPISODE_DIR)
-        
-    plot_arrays(x_vals=val_acc_epochs_x, y_vals=val_acc_epochs_y, \
-        x_name="Epochs", y_name="Validation Accuracy", dataset_name=cfg.DATASET.NAME, out_dir=cfg.EPISODE_DIR)
+    # plot_arrays(x_vals=plot_epoch_xvalues, y_vals=plot_epoch_yvalues, \
+    #     x_name="Epochs", y_name="Loss", dataset_name=cfg.DATASET.NAME, out_dir=cfg.EPISODE_DIR)
+    #
+    # plot_arrays(x_vals=plot_it_x_values, y_vals=plot_it_y_values, \
+    #     x_name="Iterations", y_name="Loss", dataset_name=cfg.DATASET.NAME, out_dir=cfg.EPISODE_DIR)
+    #
+    # plot_arrays(x_vals=val_acc_epochs_x, y_vals=val_acc_epochs_y, \
+    #     x_name="Epochs", y_name="Validation Accuracy", dataset_name=cfg.DATASET.NAME, out_dir=cfg.EPISODE_DIR)
 
     plot_epoch_xvalues = []
     plot_epoch_yvalues = []
@@ -381,11 +408,11 @@ def test_model(test_loader, checkpoint_file, cfg, cur_episode):
     plot_episode_xvalues.append(cur_episode)
     plot_episode_yvalues.append(test_acc)
 
-    plot_arrays(x_vals=plot_episode_xvalues, y_vals=plot_episode_yvalues, \
-        x_name="Episodes", y_name="Test Accuracy", dataset_name=cfg.DATASET.NAME, out_dir=cfg.EXP_DIR)
-
-    save_plot_values([plot_episode_xvalues, plot_episode_yvalues], \
-        ["plot_episode_xvalues", "plot_episode_yvalues"], out_dir=cfg.EXP_DIR)
+    # plot_arrays(x_vals=plot_episode_xvalues, y_vals=plot_episode_yvalues, \
+    #     x_name="Episodes", y_name="Test Accuracy", dataset_name=cfg.DATASET.NAME, out_dir=cfg.EXP_DIR)
+    #
+    # save_plot_values([plot_episode_xvalues, plot_episode_yvalues], \
+    #     ["plot_episode_xvalues", "plot_episode_yvalues"], out_dir=cfg.EXP_DIR)
 
     return test_acc
 
@@ -450,11 +477,11 @@ def train_epoch(train_loader, model, loss_fun, optimizer, train_meter, cur_epoch
             #because cur_epoch starts with 0
             plot_it_x_values.append((cur_epoch)*len_train_loader + cur_iter)
             plot_it_y_values.append(loss)
-            save_plot_values([plot_it_x_values, plot_it_y_values],["plot_it_x_values", "plot_it_y_values"], out_dir=cfg.EPISODE_DIR, isDebug=False)
+            # save_plot_values([plot_it_x_values, plot_it_y_values],["plot_it_x_values", "plot_it_y_values"], out_dir=cfg.EPISODE_DIR, isDebug=False)
             # print(plot_it_x_values)
             # print(plot_it_y_values)
             #Plot loss graphs
-            plot_arrays(x_vals=plot_it_x_values, y_vals=plot_it_y_values, x_name="Iterations", y_name="Loss", dataset_name=cfg.DATASET.NAME, out_dir=cfg.EPISODE_DIR,)
+            # plot_arrays(x_vals=plot_it_x_values, y_vals=plot_it_y_values, x_name="Iterations", y_name="Loss", dataset_name=cfg.DATASET.NAME, out_dir=cfg.EPISODE_DIR,)
             print('Training Epoch: {}/{}\tIter: {}/{}'.format(cur_epoch+1, cfg.OPTIM.MAX_EPOCH, cur_iter, len(train_loader)))
 
         #Compute the difference in time now from start time initialized just before this for loop.

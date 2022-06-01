@@ -194,6 +194,7 @@ _C.ACTIVE_LEARNING.N_BINS = 500 # Used by UC_uniform
 _C.ACTIVE_LEARNING.DROPOUT_ITERATIONS = 25 # Used by DBAL and BALD
 _C.ACTIVE_LEARNING.INIT_L_RATIO = 0.1 # Initial labeled pool ration
 _C.ACTIVE_LEARNING.MAX_ITER = 5 # Max AL iterations
+_C.ACTIVE_LEARNING.FINE_TUNE = True # continue after AL from existing model or from scratch
 
 # ---------------------------------------------------------------------------- #
 # Common train/test data loader options
@@ -225,7 +226,7 @@ _C.DATASET.VAL_RATIO = 0.1
 # Data augmentation methods - 'simclr', 'randaug', 'hflip'
 _C.DATASET.AUG_METHOD = 'hflip' 
 # Accepted Datasets
-_C.DATASET.ACCEPTED = ['MNIST','SVHN','CIFAR10','CIFAR100','TINYIMAGENET', 'IMBALANCED_CIFAR10', 'IMBALANCED_CIFAR100']
+_C.DATASET.ACCEPTED = ['MNIST','SVHN','CIFAR10','CIFAR100','TINYIMAGENET', 'IMBALANCED_CIFAR10', 'IMBALANCED_CIFAR100', 'IMAGENET50', 'IMAGENET100', 'IMAGENET200']
 
 def assert_cfg():
     """Checks config values invariants."""
