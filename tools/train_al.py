@@ -47,47 +47,10 @@ def argparser():
     parser.add_argument('--cfg', dest='cfg_file', help='Config file', required=True, type=str)
     parser.add_argument('--exp-name', dest='exp_name', help='Experiment Name', required=True, type=str)
     parser.add_argument('--al', dest='al', help='AL Method', required=True, type=str)
+    parser.add_argument('--budget', dest='budget', help='Budget Per Round', required=True, type=int)
 
     return parser
 
-def plot_arrays(x_vals, y_vals, x_name, y_name, dataset_name, out_dir, isDebug=False):
-    # if not du.is_master_proc():
-    #     return
-    
-    import matplotlib.pyplot as plt
-    temp_name = "{}_vs_{}".format(x_name, y_name)
-    plt.xlabel(x_name)
-    plt.ylabel(y_name)
-    plt.title("Dataset: {}; {}".format(dataset_name, temp_name))
-    plt.plot(x_vals, y_vals)
-
-    if isDebug: print("plot_saved at : {}".format(os.path.join(out_dir, temp_name+'.png')))
-
-    plt.savefig(os.path.join(out_dir, temp_name+".png"))
-    plt.close()
-
-def save_plot_values(temp_arrays, temp_names, out_dir, isParallel=True, saveInTextFormat=True, isDebug=True):
-
-    """ Saves arrays provided in the list in npy format """
-    # Return if not master process
-    # if isParallel:
-    #     if not du.is_master_proc():
-    #         return
-
-    for i in range(len(temp_arrays)):
-        temp_arrays[i] = np.array(temp_arrays[i])
-        temp_dir = out_dir
-        # if cfg.TRAIN.TRANSFER_EXP:
-        #     temp_dir += os.path.join("transfer_experiment",cfg.MODEL.TRANSFER_MODEL_TYPE+"_depth_"+str(cfg.MODEL.TRANSFER_MODEL_DEPTH))+"/"
-
-        if not os.path.exists(temp_dir):
-            os.makedirs(temp_dir)
-        if saveInTextFormat:
-            # if isDebug: print(f"Saving {temp_names[i]} at {temp_dir+temp_names[i]}.txt in text format!!")
-            np.savetxt(temp_dir+'/'+temp_names[i]+".txt", temp_arrays[i], fmt="%1.2f")
-        else:
-            # if isDebug: print(f"Saving {temp_names[i]} at {temp_dir+temp_names[i]}.npy in numpy format!!")
-            np.save(temp_dir+'/'+temp_names[i]+".npy", temp_arrays[i])
 
 def is_eval_epoch(cur_epoch):
     """Determines if the model should be evaluated at the current epoch."""
@@ -150,10 +113,10 @@ def main(cfg):
     data_obj = Data(cfg)
     train_data, train_size = data_obj.getDataset(save_dir=cfg.DATASET.ROOT_DIR, isTrain=True, isDownload=True)
     test_data, test_size = data_obj.getDataset(save_dir=cfg.DATASET.ROOT_DIR, isTrain=False, isDownload=True)
-    
+
     print("\nDataset {} Loaded Sucessfully.\nTotal Train Size: {} and Total Test Size: {}\n".format(cfg.DATASET.NAME, train_size, test_size))
     logger.info("Dataset {} Loaded Sucessfully. Total Train Size: {} and Total Test Size: {}\n".format(cfg.DATASET.NAME, train_size, test_size))
-    
+
     lSet_path, uSet_path, valSet_path = data_obj.makeLUVSets(train_split_ratio=cfg.ACTIVE_LEARNING.INIT_L_RATIO, \
         val_split_ratio=cfg.DATASET.VAL_RATIO, data=train_data, seed_id=cfg.RNG_SEED, save_dir=cfg.EXP_DIR)
 
@@ -200,7 +163,7 @@ def main(cfg):
     logger.info("AL Query Method: {}\nMax AL Episodes: {}\n".format(cfg.ACTIVE_LEARNING.SAMPLING_FN, cfg.ACTIVE_LEARNING.MAX_ITER))
 
     for cur_episode in range(0, cfg.ACTIVE_LEARNING.MAX_ITER+1):
-        
+
         print("======== EPISODE {} BEGINS ========\n".format(cur_episode))
         logger.info("======== EPISODE {} BEGINS ========\n".format(cur_episode))
 
@@ -213,19 +176,19 @@ def main(cfg):
         # Train model
         print("======== TRAINING ========")
         logger.info("======== TRAINING ========")
-        
+
         best_val_acc, best_val_epoch, checkpoint_file = train_model(lSet_loader, valSet_loader, model, optimizer, cfg)
-        
+
         print("Best Validation Accuracy: {}\nBest Epoch: {}\n".format(round(best_val_acc, 4), best_val_epoch))
         logger.info("EPISODE {} Best Validation Accuracy: {}\tBest Epoch: {}\n".format(cur_episode, round(best_val_acc, 4), best_val_epoch))
-        
+
         # Test best model checkpoint
         print("======== TESTING ========\n")
         logger.info("======== TESTING ========\n")
         test_acc = test_model(test_loader, checkpoint_file, cfg, cur_episode)
         print("Test Accuracy: {}.\n".format(round(test_acc, 4)))
         logger.info("EPISODE {} Test Accuracy {}.\n".format(cur_episode, test_acc))
-        
+
         # No need to perform active sampling in the last episode iteration
         if cur_episode == cfg.ACTIVE_LEARNING.MAX_ITER:
             # Save current lSet, uSet in the final episode directory
@@ -243,7 +206,7 @@ def main(cfg):
 
         # Save current lSet, new_uSet and activeSet in the episode directory
         data_obj.saveSets(lSet, uSet, activeSet, cfg.EPISODE_DIR)
-        
+
         # Add activeSet to lSet, save new_uSet as uSet and update dataloader for the next episode
         lSet = np.append(lSet, activeSet)
         uSet = new_uSet
@@ -294,7 +257,7 @@ def train_model(train_loader, val_loader, model, optimizer, cfg):
 
     temp_best_val_acc = 0.
     temp_best_val_epoch = 0
-    
+
     # Best checkpoint model and optimizer states
     best_model_state = None
     best_opt_state = None
@@ -315,7 +278,7 @@ def train_model(train_loader, val_loader, model, optimizer, cfg):
         # Compute precise BN stats
         if cfg.BN.USE_PRECISE_STATS:
             nu.compute_precise_bn_stats(model, train_loader)
-        
+
 
         # Model evaluation
         if is_eval_epoch(cur_epoch):
@@ -330,7 +293,7 @@ def train_model(train_loader, val_loader, model, optimizer, cfg):
 
                 # Save best model and optimizer state for checkpointing
                 model.eval()
-                
+
                 best_model_state = model.module.state_dict() if cfg.NUM_GPUS > 1 else model.state_dict()
                 best_opt_state = optimizer.state_dict()
 
@@ -379,7 +342,7 @@ def train_model(train_loader, val_loader, model, optimizer, cfg):
     plot_epoch_yvalues = []
     plot_it_x_values = []
     plot_it_y_values = []
-    
+
     best_val_acc = temp_best_val_acc
     best_val_epoch = temp_best_val_epoch
 
@@ -401,7 +364,7 @@ def test_model(test_loader, checkpoint_file, cfg, cur_episode):
 
     model = model_builder.build_model(cfg)
     model = cu.load_checkpoint(checkpoint_file, model)
-    
+
     test_err = test_epoch(test_loader, model, test_meter, cur_episode)
     test_acc = 100. - test_err
 
@@ -554,8 +517,10 @@ def test_epoch(test_loader, model, test_meter, cur_epoch):
 
 
 if __name__ == "__main__":
-    cfg.merge_from_file(argparser().parse_args().cfg_file)
-    cfg.merge_from_file(argparser().parse_args().cfg_file)
-    cfg.EXP_NAME = argparser().parse_args().exp_name
-    cfg.ACTIVE_LEARNING.SAMPLING_FN = argparser().parse_args().al
+    args = argparser().parse_args()
+    cfg.merge_from_file(args.cfg_file)
+    cfg.merge_from_file(args.cfg_file)
+    cfg.EXP_NAME = args.exp_name
+    cfg.ACTIVE_LEARNING.SAMPLING_FN = args.al
+    cfg.ACTIVE_LEARNING.BUDGET_SIZE = args.budget
     main(cfg)

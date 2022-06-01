@@ -4,13 +4,13 @@ import faiss
 
 
 def calculate_typicality(features, num_neighbors):
-    mean_distance = get_mean_distance(features, num_neighbors)
+    mean_distance = get_mean_nn_dist(features, num_neighbors)
     # low distance to NN is high density
     density = 1 / (mean_distance + 1e-5)
     return density
 
 
-def get_mean_distance(features, num_neighbors, return_indices=False):
+def get_mean_nn_dist(features, num_neighbors, return_indices=False):
     distances, indices = get_nn(features, num_neighbors)
     mean_distance = distances.mean(axis=1)
     if return_indices:
@@ -59,7 +59,6 @@ class TypiClust:
         self.init_features_and_clusters(is_scan)
 
     def init_features_and_clusters(self, is_scan):
-
         if is_scan:
             num_clusters = min(len(self.lSet) + self.budgetSize, self.MAX_NUM_CLUSTERS)
             fname_dict = {'CIFAR10': f'../../Unsupervised-Classification/results/cifar-10/scan/features_seed{self.seed}_clusters{num_clusters}.npy',
@@ -82,33 +81,28 @@ class TypiClust:
             self.clusters = kmeans(self.features, num_clusters=len(self.lSet) + self.budgetSize)
 
     def select_samples(self, ):
+        # using only labeled+unlabeled indices, without validation set.
         relevant_indices = np.concatenate([self.lSet, self.uSet]).astype(int)
         features = self.features[relevant_indices]
         labels = np.copy(self.clusters[relevant_indices])
         existing_indices = np.arange(len(self.lSet))
-        total_clusters = min(self.budgetSize + len(existing_indices), self.MAX_NUM_CLUSTERS)
+        # counting cluster sizes and number of labeled samples per cluster
         cluster_ids, cluster_sizes = np.unique(labels, return_counts=True)
-        existing_counts = np.bincount(labels[existing_indices], minlength=total_clusters)[cluster_ids]
-
-        df = pd.DataFrame({'cluster_id': cluster_ids, 'cluster_size': cluster_sizes, 'existing_count': existing_counts,
-                           'neg_cluster_size': -1 * cluster_sizes})
+        cluster_labeled_counts = np.bincount(labels[existing_indices], minlength=len(cluster_ids))
+        clusters_df = pd.DataFrame({'cluster_id': cluster_ids, 'cluster_size': cluster_sizes, 'existing_count': cluster_labeled_counts,
+                                    'neg_cluster_size': -1 * cluster_sizes})
         # drop too small clusters
-        df = df[df.cluster_size > self.MIN_CLUSTER_SIZE]
+        clusters_df = clusters_df[clusters_df.cluster_size > self.MIN_CLUSTER_SIZE]
         # sort clusters by lowest number of existing samples, and then by cluster sizes (large to small)
-        df = df.sort_values(['existing_count', 'neg_cluster_size'])
+        clusters_df = clusters_df.sort_values(['existing_count', 'neg_cluster_size'])
         labels[existing_indices] = -1
 
-        print('electing samples')
         selected = []
 
-        i = -1
-        while len(selected) < self.budgetSize:
-            i = (i + 1) % len(df)
-            cluster = df.iloc[i % len(df)].cluster_id
+        for i in range(self.budgetSize):
+            cluster = clusters_df.iloc[i % len(clusters_df)].cluster_id
             indices = (labels == cluster).nonzero()[0]
             rel_feats = features[indices]
-            if len(indices) < self.MIN_CLUSTER_SIZE:
-                continue
             # in case we have too small cluster, calculate density among half of the cluster
             typicality = calculate_typicality(rel_feats, min(self.K_NN, len(indices) // 2))
             idx = indices[typicality.argmax()]
