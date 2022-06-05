@@ -1,53 +1,34 @@
 # Active Learning on a Budget - Opposite Strategies Suit High and Low Budgets
 
+This is the official implementation for the paper **Active Learning on a Budget - Opposite Strategies Suit High and Low Budgets**. This code implements TypiClust - a Simple and Effective Low Budget Active Learning method.
+
+[**Arxiv link**](https://arxiv.org/abs/2202.02794), 
+[**Twitter Post link**](https://twitter.com/AvihuDkl/status/1529385835694637058)
 
 
-# Deep Active Learning Toolkit for Image Classification in PyTorch
+TypiClust first employs a representation learning method, then clusters the data into K clusters, and selects the most Typical (Dense) sample from every cluster. In other words, TypiClust selects samples from dense and diverse regions of the data distribution.
 
-This is a code base for deep active learning for image classification written in [PyTorch](https://pytorch.org/). It is build on top of FAIR's [pycls](https://github.com/facebookresearch/pycls/). I want to emphasize that this is a derivative of the toolkit originally shared with me via email by Prateek Munjal _et al._, the authors of the paper _"Towards Robust and Reproducible Active Learning using Neural Networks"_, paper available [here](https://arxiv.org/abs/2002.09564).  
+
+![cifar_selection.png](images/cifar_selection.png)
+![TypiClust.gif](images/2d_selection_gif.gif)!
+
+The method is examined using the evaluation framework built by Munjal et al. 
+
+![results.png](images/results.png)!
 
 ## Introduction
 
 The goal of this repository is to provide a simple and flexible codebase for deep active learning. It is designed to support rapid implementation and evaluation of research ideas. We also provide a results on CIFAR10 below.
 
-The codebase currently only supports single-machine single-gpu training. We will soon scale it to single-machine multi-gpu training, powered by the PyTorch distributed package.
-
 ## Using the Toolkit
 
-Please see [`GETTING_STARTED`](docs/GETTING_STARTED.md) for brief instructions on installation, adding new datasets, basic usage examples, etc.
+Please see [`GETTING_STARTED`](docs/GETTING_STARTED.md) for brief instructions on installation, adding new datasets, basic usage examples.
 
-## Active Learning Methods Supported
-* Uncertainty Sampling
-  * Least Confidence
-  * Min-Margin
-  * Max-Entropy
-  * Deep Bayesian Active Learning (DBAL) [1]
-  * Bayesian Active Learning by Disagreement (BALD) [1]
-* Diversity Sampling 
-  * Coreset (greedy) [2]
-  * Variational Adversarial Active Learning (VAAL) [3]
-* Query-by-Committee Sampling
-  * Ensemble Variation Ratio (Ens-varR) [4]
-
-
-## Datasets Supported
-* [CIFAR10/100](https://www.cs.toronto.edu/~kriz/cifar.html)
-* [MNIST](http://yann.lecun.com/exdb/mnist/)
-* [SVHN](http://ufldl.stanford.edu/housenumbers/)
-* [Tiny ImageNet](https://www.kaggle.com/c/tiny-imagenet) (Download the zip file [here](http://cs231n.stanford.edu/tiny-imagenet-200.zip))
-* Long-Tail CIFAR-10/100
-
-Follow the instructions in [`GETTING_STARTED`](docs/GETTING_STARTED.md) to add a new dataset. 
-
-## Results on CIFAR10 and CIFAR100 
-
-The following are the results on CIFAR10 and CIFAR100, trained with hyperameters present in `configs/cifar10/al/RESNET18.yaml` and `configs/cifar100/al/RESNET18.yaml` respectively. All results were averaged over 3 runs. 
 
 ## Citing this Repository
 
 If you find this repo helpful in your research, please consider citing us and the owners of the original toolkit:
 
-```
 @article{Chandra2021DeepAL,
     Author = {Akshay L Chandra and Vineeth N Balasubramanian},
     Title = {Deep Active Learning Toolkit for Image Classification in PyTorch},

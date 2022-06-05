@@ -120,14 +120,17 @@ CUDA_VISIBLE_DEVICES=0 python train.py \
     --cfg=../configs/cifar10/train/RESNET18.yaml --exp-name=YOUR_EXPERIMENT_NAME
 ```
 
-### Ensemble Passive Learning
+[comment]: <> (### Ensemble Passive Learning)
 
-Watch out for the ensemble options in the config file.
+[comment]: <> (Watch out for the ensemble options in the config file.)
 
-```
-CUDA_VISIBLE_DEVICES=0 python ensemble_train.py \
-    --cfg=../configs/cifar10/train/RESNET18_ENS.yaml --exp-name=YOUR_EXPERIMENT_NAME
-```
+[comment]: <> (```)
+
+[comment]: <> (CUDA_VISIBLE_DEVICES=0 python ensemble_train.py \)
+
+[comment]: <> (    --cfg=../configs/cifar10/train/RESNET18_ENS.yaml --exp-name=YOUR_EXPERIMENT_NAME)
+
+[comment]: <> (```)
 
 ### Specific Model Evaluation
 
@@ -139,51 +142,83 @@ CUDA_VISIBLE_DEVICES=0 python test_model.py \
 ```
 
 
-## Add Your Own Dataset 
+[comment]: <> (## Add Your Own Dataset )
 
-To add your own dataset, you need to do the following: 
-1. Write the PyTorch Dataset code for your custom dataset (or you could directly use the ones [PyTorch provides](https://pytorch.org/vision/stable/datasets.html)). 
-2. Create a sub class of the above Dataset with some desirable modifications and add it to the `pycls/datasets/custom_datasets.py`.
-    * We add two new variables to the dataset - a boolean flag `no_aug` and `test_transform`. 
-    * We set the flag `no_aug = True` before iterating through unlabeled and the validations dataloaders so that data doesn't get augmented. 
-    * See how we modify the `__get_item__` function to achieve that:
-```
-class CIFAR10(torchvision.datasets.CIFAR10):
-      def __init__(self, root, train, transform, test_transform, download=True):
-          super(CIFAR10, self).__init__(root, train, transform=transform, download=download)
-          self.test_transform = test_transform
-          self.no_aug = False
+[comment]: <> (To add your own dataset, you need to do the following: )
+
+[comment]: <> (1. Write the PyTorch Dataset code for your custom dataset &#40;or you could directly use the ones [PyTorch provides]&#40;https://pytorch.org/vision/stable/datasets.html&#41;&#41;. )
+
+[comment]: <> (2. Create a sub class of the above Dataset with some desirable modifications and add it to the `pycls/datasets/custom_datasets.py`.)
+
+[comment]: <> (    * We add two new variables to the dataset - a boolean flag `no_aug` and `test_transform`. )
+
+[comment]: <> (    * We set the flag `no_aug = True` before iterating through unlabeled and the validations dataloaders so that data doesn't get augmented. )
+
+[comment]: <> (    * See how we modify the `__get_item__` function to achieve that:)
+
+[comment]: <> (```)
+
+[comment]: <> (class CIFAR10&#40;torchvision.datasets.CIFAR10&#41;:)
+
+[comment]: <> (      def __init__&#40;self, root, train, transform, test_transform, download=True&#41;:)
+
+[comment]: <> (          super&#40;CIFAR10, self&#41;.__init__&#40;root, train, transform=transform, download=download&#41;)
+
+[comment]: <> (          self.test_transform = test_transform)
+
+[comment]: <> (          self.no_aug = False)
   
-      def __getitem__(self, index: int):
-          """
-          Args:
-              index (int): Index
+[comment]: <> (      def __getitem__&#40;self, index: int&#41;:)
+
+[comment]: <> (          """)
+
+[comment]: <> (          Args:)
+
+[comment]: <> (              index &#40;int&#41;: Index)
   
-          Returns:
-              tuple: (image, target) where target is index of the target class.
-          """
-          img, target = self.data[index], self.targets[index]
+[comment]: <> (          Returns:)
+
+[comment]: <> (              tuple: &#40;image, target&#41; where target is index of the target class.)
+
+[comment]: <> (          """)
+
+[comment]: <> (          img, target = self.data[index], self.targets[index])
   
-          # doing this so that it is consistent with all other datasets
-          # to return a PIL Image
-          img = Image.fromarray(img)
+[comment]: <> (          # doing this so that it is consistent with all other datasets)
+
+[comment]: <> (          # to return a PIL Image)
+
+[comment]: <> (          img = Image.fromarray&#40;img&#41;)
           
-          ##########################
-          # set True before iterating through unlabeled or validation set
-          if self.no_aug: 
-              if self.test_transform is not None:
-                  img = self.test_transform(img)            
-          else:
-              if self.transform is not None:
-                  img = self.transform(img)
-          #########################
+[comment]: <> (          ##########################)
+
+[comment]: <> (          # set True before iterating through unlabeled or validation set)
+
+[comment]: <> (          if self.no_aug: )
+
+[comment]: <> (              if self.test_transform is not None:)
+
+[comment]: <> (                  img = self.test_transform&#40;img&#41;            )
+
+[comment]: <> (          else:)
+
+[comment]: <> (              if self.transform is not None:)
+
+[comment]: <> (                  img = self.transform&#40;img&#41;)
+
+[comment]: <> (          #########################)
           
-          return img, target
-```
-3. Add your dataset in `pycls/dataset/data.py` 
-    * Add appropriate preprocessing steps to `getPreprocessOps` 
-    * Add the dataset call to `getDataset`
-4. Create appropriate config `yaml` files and use them for training AL.
+[comment]: <> (          return img, target)
+
+[comment]: <> (```)
+
+[comment]: <> (3. Add your dataset in `pycls/dataset/data.py` )
+
+[comment]: <> (    * Add appropriate preprocessing steps to `getPreprocessOps` )
+
+[comment]: <> (    * Add the dataset call to `getDataset`)
+
+[comment]: <> (4. Create appropriate config `yaml` files and use them for training AL.)
 
 
 ## Some Comments About Our Toolkit
