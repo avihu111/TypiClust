@@ -17,7 +17,7 @@ build/
 *.swp
 
 # PyCharm
-.idea/
+../.idea/
 
 # Mac
 .DS_STORE

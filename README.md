@@ -9,12 +9,12 @@ This is the official implementation for the paper **Active Learning on a Budget 
 TypiClust first employs a representation learning method, then clusters the data into K clusters, and selects the most Typical (Dense) sample from every cluster. In other words, TypiClust selects samples from dense and diverse regions of the data distribution.
 
 
-![cifar_selection.png](images/cifar_selection.png)
-![TypiClust.gif](images/2d_selection_gif.gif)!
+![cifar_selection.png](cifar_selection.png)
+![TypiClust.gif](2d_selection_gif.gif)!
 
 The method is examined using the evaluation framework built by Munjal et al. 
 
-![results.png](images/results.png)!
+![results.png](results.png)!
 
 ## Introduction
 
@@ -22,7 +22,7 @@ The goal of this repository is to provide a simple and flexible codebase for dee
 
 ## Using the Toolkit
 
-Please see [`GETTING_STARTED`](docs/GETTING_STARTED.md) for brief instructions on installation, adding new datasets, basic usage examples.
+Please see [`GETTING_STARTED`](deep-al/docs/GETTING_STARTED.md) for brief instructions on installation, adding new datasets, basic usage examples.
 
 
 ## Citing this Repository
