@@ -1,22 +1,7 @@
 import numpy as np
 import pandas as pd
 import faiss
-
-
-def calculate_typicality(features, num_neighbors):
-    mean_distance = get_mean_nn_dist(features, num_neighbors)
-    # low distance to NN is high density
-    density = 1 / (mean_distance + 1e-5)
-    return density
-
-
-def get_mean_nn_dist(features, num_neighbors, return_indices=False):
-    distances, indices = get_nn(features, num_neighbors)
-    mean_distance = distances.mean(axis=1)
-    if return_indices:
-        return mean_distance, indices
-    return mean_distance
-
+from sklearn.cluster import MiniBatchKMeans, KMeans
 
 def get_nn(features, num_neighbors):
     # calculates nearest neighbors on GPU
@@ -30,10 +15,23 @@ def get_nn(features, num_neighbors):
     return distances[:, 1:], indices[:, 1:]
 
 
+def get_mean_nn_dist(features, num_neighbors, return_indices=False):
+    distances, indices = get_nn(features, num_neighbors)
+    mean_distance = distances.mean(axis=1)
+    if return_indices:
+        return mean_distance, indices
+    return mean_distance
+
+
+def calculate_typicality(features, num_neighbors):
+    mean_distance = get_mean_nn_dist(features, num_neighbors)
+    # low distance to NN is high density
+    typicality = 1 / (mean_distance + 1e-5)
+    return typicality
+
+
 def kmeans(features, num_clusters):
-    from sklearn.cluster import MiniBatchKMeans, KMeans
     if num_clusters <= 50:
-        print('using regular kmeans without minibatch')
         km = KMeans(n_clusters=num_clusters)
         km.fit_predict(features)
     else:
@@ -59,10 +57,11 @@ class TypiClust:
         self.init_features_and_clusters(is_scan)
 
     def init_features_and_clusters(self, is_scan):
+        num_clusters = min(len(self.lSet) + self.budgetSize, self.MAX_NUM_CLUSTERS)
+        print(f'Clustering into {num_clusters} clustering. Scan clustering: {is_scan}')
         if is_scan:
-            num_clusters = min(len(self.lSet) + self.budgetSize, self.MAX_NUM_CLUSTERS)
             fname_dict = {'CIFAR10': f'../../scan/results/cifar-10/scan/features_seed{self.seed}_clusters{num_clusters}.npy',
-                          'CIFAR100': f'../../scan/results/cifar-20/scan/features_seed{self.seed}_clusters{num_clusters}.npy',
+                          'CIFAR100': f'../../scan/results/cifar-100/scan/features_seed{self.seed}_clusters{num_clusters}.npy',
                           'TINYIMAGENET': f'../../scan/results/tiny-imagenet/scan/features_seed{self.seed}_clusters{num_clusters}.npy',
                           }
             fname = fname_dict[self.ds_name]
@@ -70,15 +69,15 @@ class TypiClust:
             self.clusters = np.load(fname.replace('features', 'probs')).argmax(axis=-1)
         else:
             fname_dict = {'CIFAR10': f'../../scan/results/cifar-10/pretext/features_seed{self.seed}.npy',
-                          'CIFAR100': f'../../scan/results/cifar-20/pretext/features_seed{self.seed}.npy',
-                          'TINYIMAGENET': f'../../Unsupervised-Classification/results/tiny-imagenet/pretext/features_seed{self.seed}.npy',
+                          'CIFAR100': f'../../scan/results/cifar-100/pretext/features_seed{self.seed}.npy',
+                          'TINYIMAGENET': f'../../scan/results/tiny-imagenet/pretext/features_seed{self.seed}.npy',
                           'IMAGENET50': '../../../dino/runs/trainfeat.pth',
                           'IMAGENET100': '../../../dino/runs/trainfeat.pth',
                           'IMAGENET200': '../../../dino/runs/trainfeat.pth',
                           }
             fname = fname_dict[self.ds_name]
             self.features = np.load(fname)
-            self.clusters = kmeans(self.features, num_clusters=len(self.lSet) + self.budgetSize)
+            self.clusters = kmeans(self.features, num_clusters=num_clusters)
 
     def select_samples(self, ):
         # using only labeled+unlabeled indices, without validation set.

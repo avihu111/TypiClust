@@ -8,14 +8,14 @@ import os
 class MyPath(object):
     @staticmethod
     def db_root_dir(database=''):
-        db_names = {'cifar-10', 'stl-10', 'cifar-20', 'imagenet', 'imagenet_50', 'imagenet_100', 'imagenet_200'}
+        db_names = {'cifar-10', 'stl-10', 'cifar-100', 'imagenet', 'imagenet_50', 'imagenet_100', 'imagenet_200'}
         assert(database in db_names)
 
         if database == 'cifar-10':
             return './datasets/cifar-10/'
         
-        elif database == 'cifar-20':
-            return './datasets/cifar-20/'
+        elif database == 'cifar-100':
+            return './datasets/cifar-100/'
 
         elif database == 'stl-10':
             return './datasets/stl-10/'

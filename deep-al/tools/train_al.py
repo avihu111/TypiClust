@@ -54,13 +54,13 @@ def str2bool(v):
 def argparser():
     parser = argparse.ArgumentParser(description='Active Learning - Image Classification')
     parser.add_argument('--cfg', dest='cfg_file', help='Config file', required=True, type=str)
-    parser.add_argument('--exp-name', dest='exp_name', help='Experiment Name', required=True, type=str)
-    parser.add_argument('--al', dest='al', help='AL Method', required=True, type=str)
-    parser.add_argument('--budget', dest='budget', help='Budget Per Round', required=True, type=int)
+    parser.add_argument('--exp-name', help='Experiment Name', required=True, type=str)
+    parser.add_argument('--al', help='AL Method', required=True, type=str)
+    parser.add_argument('--budget', help='Budget Per Round', required=True, type=int)
     parser.add_argument('--initial_size', help='Size of the initial random labeled set', default=0, type=int)
-    parser.add_argument('--seed', dest='seed', help='Random seed', default=1, type=int)
-    parser.add_argument('--finetune', help='Whether to continue with existing model between rounds', type=str2bool)
-    parser.add_argument('--linear_from_features', help='Whether to use a linear layer from self-supervised features', type=str2bool)
+    parser.add_argument('--seed', help='Random seed', default=1, type=int)
+    parser.add_argument('--finetune', help='Whether to continue with existing model between rounds', type=str2bool, default=False)
+    parser.add_argument('--linear_from_features', help='Whether to use a linear layer from self-supervised features', type=str2bool, default=False)
 
     return parser
 

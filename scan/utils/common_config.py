@@ -44,7 +44,7 @@ def get_feature_dimensions_backbone(p):
 def get_model(p, pretrain_path=None):
     # Get backbone
     if p['backbone'] == 'resnet18':
-        if p['train_db_name'] in ['cifar-10', 'cifar-20']:
+        if p['train_db_name'] in ['cifar-10', 'cifar-100']:
             from models.resnet_cifar import resnet18
             backbone = resnet18()
 
@@ -124,9 +124,9 @@ def get_train_dataset(p, transform, to_augmented_dataset=False,
         from data.cifar import CIFAR10
         dataset = CIFAR10(train=True, transform=transform, download=True)
 
-    elif p['train_db_name'] == 'cifar-20':
-        from data.cifar import CIFAR20
-        dataset = CIFAR20(train=True, transform=transform, download=True)
+    elif p['train_db_name'] == 'cifar-100':
+        from data.cifar import CIFAR100
+        dataset = CIFAR100(train=True, transform=transform, download=True)
 
     elif p['train_db_name'] == 'stl-10':
         from data.stl import STL10
@@ -163,9 +163,9 @@ def get_val_dataset(p, transform=None, to_neighbors_dataset=False):
         from data.cifar import CIFAR10
         dataset = CIFAR10(train=False, transform=transform, download=True)
     
-    elif p['val_db_name'] == 'cifar-20':
-        from data.cifar import CIFAR20
-        dataset = CIFAR20(train=False, transform=transform, download=True)
+    elif p['val_db_name'] == 'cifar-100':
+        from data.cifar import CIFAR100
+        dataset = CIFAR100(train=False, transform=transform, download=True)
 
     elif p['val_db_name'] == 'stl-10':
         from data.stl import STL10

@@ -14,9 +14,9 @@ num_heads: 1 # Only use one head
 backbone: resnet18
 
 # Dataset
-train_db_name: cifar-20
-val_db_name: cifar-20
-num_classes: 20
+train_db_name: cifar-100
+val_db_name: cifar-100
+num_classes: 100
 num_neighbors: 20
 
 # Transformations
