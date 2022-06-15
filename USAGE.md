@@ -8,9 +8,19 @@ git clone https://github.com/avihu111/TypiClust
 cd TypiClust
 ```
 
-Install the needed packages:
+Create an environment using this command:
 ```
-pip install -r requirements.txt
+conda create --name typiclust-env.txt typiclust
+```
+
+or by running the following commands:
+```
+conda create --name typiclust python=3.7
+conda activate typiclust
+conda install pytorch torchvision torchaudio cudatoolkit=11.3 -c pytorch
+conda install matplotlib scipy scikit-learn pandas
+conda install -c conda-forge faiss-gpu
+pip install pyyaml easydict termcolor tqdm simplejson yacs
 ```
 
 ## Representation Learning
