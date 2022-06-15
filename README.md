@@ -8,9 +8,12 @@ This is the official implementation for the paper **Active Learning on a Budget 
 
 TypiClust first employs a representation learning method, then clusters the data into K clusters, and selects the most Typical (Dense) sample from every cluster. In other words, TypiClust selects samples from dense and diverse regions of the data distribution.
 
+<img src="https://user-images.githubusercontent.com/39214195/161326609-a60ff5fc-ca97-4fdb-bd28-5a5468c2499c.png" width=440>
 
 ![cifar_selection.png](cifar_selection.png)
-![TypiClust.gif](2d_selection_gif.gif)!
+![TypiClust.gif](2d_selection_gif.gif)
+
+<img src="./2d_selection_gif.gif" width="440">
 
 The method is examined using the evaluation framework built by Munjal et al. 
 

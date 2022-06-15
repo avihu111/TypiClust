@@ -28,7 +28,7 @@ class TinyImageNet(datasets.ImageFolder):
         samples (list): List of (image path, class_index) tuples
         targets (list): The class_index value for each image in the dataset
     """
-    def __init__(self, root: str, split: str = 'train', transform=None, test_transform=None, **kwargs: Any) -> None:
+    def __init__(self, root: str, split: str = 'train', transform=None, test_transform=None, only_features=False, **kwargs: Any) -> None:
         self.root = root
         self.test_transform = test_transform
         self.no_aug = False
@@ -47,7 +47,11 @@ class TinyImageNet(datasets.ImageFolder):
                              for cls in clss}
         # Tiny ImageNet val directory structure is not similar to that of train's
         # So a custom loading function is necessary
-        if self.split == 'val':
+        self.only_features = only_features
+        if self.split == 'train':
+            self.features = np.load('../../scan/results/tiny-imagenet/pretext/features_seed1.npy')
+        elif self.split == 'val':
+            self.features = np.load('../../scan/results/tiny-imagenet/pretext/test_features_seed1.npy')
             self.root = root
             self.imgs, self.targets = self.load_val_data()
             self.samples = [(self.imgs[idx], self.targets[idx]) for idx in range(len(self.imgs))]
@@ -99,11 +103,15 @@ class TinyImageNet(datasets.ImageFolder):
         """
         path, target = self.samples[index]
         sample = self.loader(path)
-        if self.no_aug:
-            if self.test_transform is not None:
-                sample  = self.test_transform(sample)            
+
+        if self.only_features:
+            sample = self.features[index]
         else:
-            if self.transform is not None:
-                sample = self.transform(sample)
+            if self.no_aug:
+                if self.test_transform is not None:
+                    sample = self.test_transform(sample)
+            else:
+                if self.transform is not None:
+                    sample = self.transform(sample)
 
         return sample, target

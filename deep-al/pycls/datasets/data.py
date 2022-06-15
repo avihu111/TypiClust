@@ -65,6 +65,8 @@ class Data:
         INPUT:
         cfg: yacs.config, config object
         """
+        self.cfg = cfg
+        self.num_workers = cfg.DATA_LOADER.NUM_WORKERS
         self.dataset = cfg.DATASET.NAME
         self.data_dir = cfg.DATASET.ROOT_DIR
         self.datasets_accepted = cfg.DATASET.ACCEPTED
@@ -73,7 +75,6 @@ class Data:
         self.aug_method = cfg.DATASET.AUG_METHOD
         self.rand_augment_N = 1 if cfg is None else cfg.RANDAUG.N
         self.rand_augment_M = 5 if cfg is None else cfg.RANDAUG.M
-        self.num_workers = cfg.DATA_LOADER.NUM_WORKERS
 
     def about(self):
         """
@@ -201,18 +202,18 @@ class Data:
             preprocess_steps = test_preops_list
         preprocess_steps = transforms.Compose(preprocess_steps)
 
-
+        only_features = self.cfg.MODEL.LINEAR_FROM_FEATURES
 
         if self.dataset == "MNIST":
             mnist = MNIST(save_dir, train=isTrain, transform=preprocess_steps, test_transform=test_preprocess_steps, download=isDownload)
             return mnist, len(mnist)
 
         elif self.dataset == "CIFAR10":
-            cifar10 = CIFAR10(save_dir, train=isTrain, transform=preprocess_steps, test_transform=test_preprocess_steps, download=isDownload)
+            cifar10 = CIFAR10(save_dir, train=isTrain, transform=preprocess_steps, test_transform=test_preprocess_steps, download=isDownload, only_features=only_features)
             return cifar10, len(cifar10)
 
         elif self.dataset == "CIFAR100":
-            cifar100 = CIFAR100(save_dir, train=isTrain, transform=preprocess_steps,  test_transform=test_preprocess_steps, download=isDownload)
+            cifar100 = CIFAR100(save_dir, train=isTrain, transform=preprocess_steps,  test_transform=test_preprocess_steps, download=isDownload, only_features=only_features)
             return cifar100, len(cifar100)
 
         elif self.dataset == "SVHN":
@@ -225,12 +226,22 @@ class Data:
         elif self.dataset == "TINYIMAGENET":
             if isTrain:
                 # tiny = datasets.ImageFolder(save_dir+'/train', transform=preprocess_steps)
-                tiny = TinyImageNet(save_dir, split='train', transform=preprocess_steps, test_transform=test_preprocess_steps)
+                tiny = TinyImageNet(save_dir, split='train', transform=preprocess_steps, test_transform=test_preprocess_steps, only_features=only_features)
             else:
                 # tiny = datasets.ImageFolder(save_dir+'/val', transform=preprocess_steps)
                 tiny = TinyImageNet(save_dir, split='val', transform=preprocess_steps, test_transform=test_preprocess_steps)
             return tiny, len(tiny)
-        
+        elif self.dataset in ['IMAGENET50', 'IMAGENET100', 'IMAGENET200']:
+            if isTrain:
+                # tiny = datasets.ImageFolder(save_dir+'/train', transform=preprocess_steps)
+                imagenet = ImageNet(save_dir, split='train', transform=preprocess_steps, test_transform=test_preprocess_steps,
+                                      num_classes=self.cfg.MODEL.NUM_CLASSES, only_features=only_features)
+            else:
+                # tiny = datasets.ImageFolder(save_dir+'/val', transform=preprocess_steps)
+                imagenet = ImageNet(save_dir, split='val', transform=preprocess_steps, test_transform=test_preprocess_steps,
+                                      num_classes=self.cfg.MODEL.NUM_CLASSES, only_features=only_features)
+            return imagenet, len(imagenet)
+
         elif self.dataset == 'IMBALANCED_CIFAR10':
             im_cifar10 = IMBALANCECIFAR10(save_dir, train=isTrain, transform=preprocess_steps, test_transform=test_preprocess_steps)
             return im_cifar10, len(im_cifar10)

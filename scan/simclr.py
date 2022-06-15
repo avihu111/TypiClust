@@ -125,6 +125,8 @@ def main():
         print('Checkpoint ...')
         torch.save({'optimizer': optimizer.state_dict(), 'model': model.state_dict(), 
                     'epoch': epoch + 1}, p['pretext_checkpoint'])
+        np.save(p['pretext_features'], memory_bank_base.pre_lasts.cpu().numpy())
+        np.save(p['pretext_features'].replace('features', 'test_features'), memory_bank_val.pre_lasts.cpu().numpy())
 
     # Save final model
     torch.save(model.state_dict(), p['pretext_model'])
