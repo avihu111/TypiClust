@@ -25,12 +25,14 @@ parser.add_argument('--config_env',
                     help='Config file for the environment')
 parser.add_argument('--config_exp',
                     help='Config file for the experiment')
+parser.add_argument('--seed', type=int, default=1, help='Random seed')
+
 args = parser.parse_args()
 
 def main():
 
     # Retrieve config file
-    p = create_config(args.config_env, args.config_exp)
+    p = create_config(args.config_env, args.config_exp, args.seed)
     print(colored(p, 'red'))
     
     # Model
@@ -135,7 +137,10 @@ def main():
     print('Mine the nearest neighbors (Top-%d)' %(topk)) 
     indices, acc = memory_bank_base.mine_nearest_neighbors(topk)
     print('Accuracy of top-%d nearest neighbors on train set is %.2f' %(topk, 100*acc))
-    np.save(p['topk_neighbors_train_path'], indices)   
+    np.save(p['topk_neighbors_train_path'], indices)
+    # save features
+    np.save(p['pretext_features'], memory_bank_base.pre_lasts.cpu().numpy())
+    np.save(p['pretext_features'].replace('features', 'test_features'), memory_bank_val.pre_lasts.cpu().numpy())
 
    
     # Mine the topk nearest neighbors at the very end (Val)

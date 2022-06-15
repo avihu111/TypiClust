@@ -61,16 +61,16 @@ class TypiClust:
     def init_features_and_clusters(self, is_scan):
         if is_scan:
             num_clusters = min(len(self.lSet) + self.budgetSize, self.MAX_NUM_CLUSTERS)
-            fname_dict = {'CIFAR10': f'../../Unsupervised-Classification/results/cifar-10/scan/features_seed{self.seed}_clusters{num_clusters}.npy',
-                          'CIFAR100': f'../../Unsupervised-Classification/results/cifar-20/scan/features_seed{self.seed}_clusters{num_clusters}.npy',
-                          'TINYIMAGENET': f'../../Unsupervised-Classification/results/tiny-imagenet/scan/features_seed{self.seed}_clusters{num_clusters}.npy',
+            fname_dict = {'CIFAR10': f'../../scan/results/cifar-10/scan/features_seed{self.seed}_clusters{num_clusters}.npy',
+                          'CIFAR100': f'../../scan/results/cifar-20/scan/features_seed{self.seed}_clusters{num_clusters}.npy',
+                          'TINYIMAGENET': f'../../scan/results/tiny-imagenet/scan/features_seed{self.seed}_clusters{num_clusters}.npy',
                           }
             fname = fname_dict[self.ds_name]
             self.features = np.load(fname)
             self.clusters = np.load(fname.replace('features', 'probs')).argmax(axis=-1)
         else:
-            fname_dict = {'CIFAR10': f'../../Unsupervised-Classification/results/cifar-10/pretext/features_seed{self.seed}.npy',
-                          'CIFAR100': f'../../Unsupervised-Classification/results/cifar-20/pretext/features_seed{self.seed}.npy',
+            fname_dict = {'CIFAR10': f'../../scan/results/cifar-10/pretext/features_seed{self.seed}.npy',
+                          'CIFAR100': f'../../scan/results/cifar-20/pretext/features_seed{self.seed}.npy',
                           'TINYIMAGENET': f'../../Unsupervised-Classification/results/tiny-imagenet/pretext/features_seed{self.seed}.npy',
                           'IMAGENET50': '../../../dino/runs/trainfeat.pth',
                           'IMAGENET100': '../../../dino/runs/trainfeat.pth',

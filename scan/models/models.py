@@ -25,9 +25,12 @@ class ContrastiveModel(nn.Module):
         else:
             raise ValueError('Invalid head {}'.format(head))
 
-    def forward(self, x):
-        features = self.contrastive_head(self.backbone(x))
+    def forward(self, x, return_pre_last=False):
+        pre_last = self.backbone(x)
+        features = self.contrastive_head(pre_last)
         features = F.normalize(features, dim = 1)
+        if return_pre_last:
+            return features, pre_last
         return features
 
 

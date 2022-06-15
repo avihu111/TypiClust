@@ -5,6 +5,7 @@ Licensed under the CC BY-NC 4.0 license (https://creativecommons.org/licenses/by
 import argparse
 import os
 import torch
+import numpy as np
 
 from termcolor import colored
 from utils.config import create_config
@@ -19,10 +20,13 @@ from utils.train_utils import scan_train
 FLAGS = argparse.ArgumentParser(description='SCAN Loss')
 FLAGS.add_argument('--config_env', help='Location of path config file')
 FLAGS.add_argument('--config_exp', help='Location of experiments config file')
+FLAGS.add_argument('--seed', type=int, default=0, help='Random Seed')
+FLAGS.add_argument('--num_clusters', type=int, default=10, help='Number of clusters')
+
 
 def main():
     args = FLAGS.parse_args()
-    p = create_config(args.config_env, args.config_exp)
+    p = create_config(args.config_env, args.config_exp, args.seed, args.num_clusters)
     print(colored(p, 'red'))
 
     # CUDNN
@@ -125,6 +129,22 @@ def main():
                     'epoch': epoch + 1, 'best_loss': best_loss, 'best_loss_head': best_loss_head},
                      p['scan_checkpoint'])
     
+    # save features
+    train_dataset_eval = get_train_dataset(p, val_transformations,
+                                           split='train', to_neighbors_dataset=True)
+    train_loader_eval = get_val_dataloader(p, train_dataset_eval)
+    train_preds, train_features = get_predictions(p, train_loader_eval, model, return_features=True)
+
+    probs = train_preds[0]['probabilities']
+    savedir = os.path.dirname(p['scan_checkpoint'])
+    features_path = os.path.join(savedir, f'features_seed{args.seed}_clusters{args.num_clusters}.npy')
+    probs_path = os.path.join(savedir, f'probs_seed{args.seed}_clusters{args.num_clusters}.npy')
+
+    np.save(features_path, train_features.numpy())
+    np.save(probs_path, probs)
+
+
+
     # Evaluate and save the final model
     print(colored('Evaluate best model based on SCAN metric at the end', 'blue'))
     model_checkpoint = torch.load(p['scan_model'], map_location='cpu')

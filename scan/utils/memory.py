@@ -7,10 +7,11 @@ import torch
 
 
 class MemoryBank(object):
-    def __init__(self, n, dim, num_classes, temperature):
+    def __init__(self, n, dim, num_classes, temperature, feature_dim=512):
         self.n = n
         self.dim = dim 
         self.features = torch.FloatTensor(self.n, self.dim)
+        self.pre_lasts = torch.FloatTensor(self.n, feature_dim)
         self.targets = torch.LongTensor(self.n)
         self.ptr = 0
         self.device = 'cpu'
@@ -67,17 +68,19 @@ class MemoryBank(object):
     def reset(self):
         self.ptr = 0 
         
-    def update(self, features, targets):
+    def update(self, features, pre_last, targets):
         b = features.size(0)
         
         assert(b + self.ptr <= self.n)
         
         self.features[self.ptr:self.ptr+b].copy_(features.detach())
+        self.pre_lasts[self.ptr:self.ptr+b].copy_(pre_last.detach())
         self.targets[self.ptr:self.ptr+b].copy_(targets.detach())
         self.ptr += b
 
     def to(self, device):
         self.features = self.features.to(device)
+        self.pre_lasts = self.pre_lasts.to(device)
         self.targets = self.targets.to(device)
         self.device = device
 
