@@ -29,6 +29,5 @@ pycls/datasets/data/
 logs/
 scratch*
 
-data/
 output/
 *.ipynb_checkpoints/
