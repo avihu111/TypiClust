@@ -20,7 +20,7 @@ from utils.train_utils import scan_train
 FLAGS = argparse.ArgumentParser(description='SCAN Loss')
 FLAGS.add_argument('--config_env', help='Location of path config file')
 FLAGS.add_argument('--config_exp', help='Location of experiments config file')
-FLAGS.add_argument('--seed', type=int, default=0, help='Random Seed')
+FLAGS.add_argument('--seed', type=int, default=1, help='Random Seed')
 FLAGS.add_argument('--num_clusters', type=int, default=10, help='Number of clusters')
 
 
@@ -142,7 +142,6 @@ def main():
 
     np.save(features_path, train_features.numpy())
     np.save(probs_path, probs)
-
 
 
     # Evaluate and save the final model
