@@ -10,10 +10,10 @@ This code implements TypiClust - a Simple and Effective Low Budget Active Learni
 
 TypiClust first employs a representation learning method, then clusters the data into K clusters, and selects the most Typical (Dense) sample from every cluster. In other words, TypiClust selects samples from dense and diverse regions of the data distribution.
 
-<img src="./cifar_selection.png" width="440">
-<img src="./2d_selection_gif.gif" width="440">
+<img src="./cifar_selection.png" height="320">
+<img src="./2d_selection_gif.gif" height="320">
 
-<img src="./results.png" width="440">
+<img src="./results.png" height="320">
 
 ## Usage
 
