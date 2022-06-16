@@ -125,6 +125,11 @@ def main():
         print('Checkpoint ...')
         torch.save({'optimizer': optimizer.state_dict(), 'model': model.state_dict(), 
                     'epoch': epoch + 1}, p['pretext_checkpoint'])
+
+        topk = 20
+        print('Mine the nearest neighbors (Top-%d)' % (topk))
+        indices, acc = memory_bank_base.mine_nearest_neighbors(topk)
+        np.save(p['topk_neighbors_train_path'], indices)
         np.save(p['pretext_features'], memory_bank_base.pre_lasts.cpu().numpy())
         np.save(p['pretext_features'].replace('features', 'test_features'), memory_bank_val.pre_lasts.cpu().numpy())
 
