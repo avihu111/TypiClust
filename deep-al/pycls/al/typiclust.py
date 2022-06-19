@@ -78,6 +78,7 @@ class TypiClust:
             fname = fname_dict[self.ds_name]
             self.features = np.load(fname)
             self.clusters = kmeans(self.features, num_clusters=num_clusters)
+        print(f'Finished clustering into {num_clusters} clusters.')
 
     def select_samples(self, ):
         # using only labeled+unlabeled indices, without validation set.
@@ -113,4 +114,7 @@ class TypiClust:
         assert len(np.intersect1d(selected, existing_indices)) == 0, 'should be new samples'
         activeSet = relevant_indices[selected]
         remainSet = np.array(sorted(list(set(self.uSet) - set(activeSet))))
+
+        print(f'Finished the selection of {len(activeSet)} samples.')
+        print(f'Active set is {activeSet}')
         return activeSet, remainSet
