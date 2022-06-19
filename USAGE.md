@@ -10,14 +10,14 @@ cd TypiClust
 
 Create an environment using this command:
 ```
-conda create --name typiclust-env.txt typiclust
+conda create --name typiclust --file typiclust-env.txt 
 ```
 
-or by running the following commands:
+If that fails, it probably means the CUDA version is incompatible. Try installing by running the following commands:
 ```
 conda create --name typiclust python=3.7
 conda activate typiclust
-conda install pytorch torchvision torchaudio cudatoolkit=11.3 -c pytorch
+conda install pytorch torchvision torchaudio cudatoolkit=<CUDA_VERSION> -c pytorch
 conda install matplotlib scipy scikit-learn pandas
 conda install -c conda-forge faiss-gpu
 pip install pyyaml easydict termcolor tqdm simplejson yacs
