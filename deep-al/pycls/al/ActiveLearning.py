@@ -79,6 +79,12 @@ class ActiveLearning:
             tpc = TypiClust(self.cfg, lSet, uSet, budgetSize=self.cfg.ACTIVE_LEARNING.BUDGET_SIZE, is_scan=is_scan)
             activeSet, uSet = tpc.select_samples()
 
+        elif self.cfg.ACTIVE_LEARNING.SAMPLING_FN.lower() in ["prob_cover", 'probcover']:
+            from .prob_cover import ProbCover
+            tpc = ProbCover(self.cfg, lSet, uSet, budgetSize=self.cfg.ACTIVE_LEARNING.BUDGET_SIZE,
+                            delta=self.cfg.ACTIVE_LEARNING.DELTA)
+            activeSet, uSet = tpc.select_samples()
+
         elif self.cfg.ACTIVE_LEARNING.SAMPLING_FN == "dbal" or self.cfg.ACTIVE_LEARNING.SAMPLING_FN == "DBAL":
             activeSet, uSet = self.sampler.dbal(budgetSize=self.cfg.ACTIVE_LEARNING.BUDGET_SIZE, \
                 uSet=uSet, clf_model=clf_model,dataset=trainDataset)
