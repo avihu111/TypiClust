@@ -38,7 +38,15 @@ cd scan
 python simclr.py --config_env configs/env.yml --config_exp configs/pretext/simclr_cifar10.yml
 cd ..
 ```
-When this finishes, the file ```./results/cifar-10/pretext/features_seed1.npy``` should exist.
+When this finishes, the file `./results/cifar-10/pretext/features_seed1.npy` should exist.
+
+To save time, you can download the features of CIFAR-10/100 from here:
+
+| Dataset          | Download link |
+|------------------|---------------| 
+|CIFAR10           | [Download](https://drive.google.com/file/d/1Le1ZuZOpfxBfxL3nnNahZcCt-lLWLQSB/view?usp=sharing)  |
+|CIFAR100          | [Download](https://drive.google.com/file/d/1o2nz_SKLdcaTCB9XVA44qCTVSUSmktUb/view?usp=sharing)  |
+and locate the files here:`./results/cifar-10/pretext/features_seed1.npy`.
 
 ## TypiClust - K-Means variant
 To select samples according to TypiClust (K-Means) where the `initial_size=0` and the `budget=100` please run 
