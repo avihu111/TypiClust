@@ -61,6 +61,7 @@ def argparser():
     parser.add_argument('--seed', help='Random seed', default=1, type=int)
     parser.add_argument('--finetune', help='Whether to continue with existing model between rounds', type=str2bool, default=False)
     parser.add_argument('--linear_from_features', help='Whether to use a linear layer from self-supervised features', type=str2bool, default=False)
+    parser.add_argument('--delta', help='Relevant only for ProbCover', default=0.6, type=float)
 
     return parser
 
@@ -536,6 +537,7 @@ if __name__ == "__main__":
     cfg.EXP_NAME = args.exp_name
     cfg.ACTIVE_LEARNING.SAMPLING_FN = args.al
     cfg.ACTIVE_LEARNING.BUDGET_SIZE = args.budget
+    cfg.ACTIVE_LEARNING.DELTA = args.delta
     cfg.RNG_SEED = args.seed
     cfg.MODEL.LINEAR_FROM_FEATURES = args.linear_from_features
 
