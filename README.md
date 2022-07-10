@@ -18,7 +18,7 @@ Selection of 30 samples on CIFAR-10:
 
 Selection of 10 samples from a GMM:
 
-<img src="./2d_selection_gif.gif" height="220">
+<img src="./2d_selection_gif.gif" height="260">
 
 TypiClust Results summary
 
