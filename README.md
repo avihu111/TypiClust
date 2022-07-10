@@ -6,7 +6,9 @@ This is the official implementation for the paper **Active Learning on a Budget 
 This code implements TypiClust - a Simple and Effective Low Budget Active Learning method.
 
 [**Arxiv link**](https://arxiv.org/abs/2202.02794), 
-[**Twitter Post link**](https://twitter.com/AvihuDkl/status/1529385835694637058)
+[**Twitter Post link**](https://twitter.com/AvihuDkl/status/1529385835694637058), 
+[**Blog Post link**](https://avihu111.github.io/Active-Learning/)
+
 
 TypiClust first employs a representation learning method, then clusters the data into K clusters, and selects the most Typical (Dense) sample from every cluster. In other words, TypiClust selects samples from dense and diverse regions of the data distribution.
 
