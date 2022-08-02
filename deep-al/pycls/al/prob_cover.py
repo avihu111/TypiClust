@@ -37,7 +37,7 @@ class ProbCover:
         represented by a list of edges (a sparse matrix).
         stored in a dataframe
         """
-        xs, ys, ds, dlts = [], [], [], []
+        xs, ys, ds = [], [], []
         print(f'Start constructing graph using delta={self.delta}')
         # distance computations are done in GPU
         cuda_feats = torch.tensor(self.rel_features).cuda()
@@ -71,12 +71,11 @@ class ProbCover:
         """
         print(f'Start selecting {self.budgetSize} samples.')
         selected = []
-        # removing incoming edges to all covered samples
+        # removing incoming edges to all covered samples from the existing labeled set
         edge_from_seen = np.isin(self.graph_df.x, np.arange(len(self.lSet)))
         covered_samples = self.graph_df.y[edge_from_seen].unique()
         cur_df = self.graph_df[(~np.isin(self.graph_df.y, covered_samples))]
         for i in range(self.budgetSize):
-
             coverage = len(covered_samples) / len(self.relevant_indices)
             # selecting the sample with the highest degree
             degrees = np.bincount(cur_df.x, minlength=len(self.relevant_indices))
@@ -98,4 +97,3 @@ class ProbCover:
         print(f'Finished the selection of {len(activeSet)} samples.')
         print(f'Active set is {activeSet}')
         return activeSet, remainSet
-

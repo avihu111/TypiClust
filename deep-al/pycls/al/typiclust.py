@@ -80,7 +80,7 @@ class TypiClust:
             self.clusters = kmeans(self.features, num_clusters=num_clusters)
         print(f'Finished clustering into {num_clusters} clusters.')
 
-    def select_samples(self, ):
+    def select_samples(self):
         # using only labeled+unlabeled indices, without validation set.
         relevant_indices = np.concatenate([self.lSet, self.uSet]).astype(int)
         features = self.features[relevant_indices]
