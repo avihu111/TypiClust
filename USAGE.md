@@ -31,7 +31,7 @@ CUDA_VISIBLE_DEVICES=0
 ```
 
 ## Representation Learning
-Both TypiClust variants rely on representation learning. 
+Both TypiClust variants and ProbCover rely on representation learning. 
 To train CIFAR-10 on simclr please run
 ```
 cd scan
@@ -74,5 +74,13 @@ Then, you can run the active learning experiment by running
 ```
 cd deep-al/tools
 python train_al.py --cfg ../configs/cifar10/al/RESNET18.yaml --al typiclust_dc --exp-name auto --initial_size 0 --budget 10
+cd ../../
+```
+
+## ProbCover
+Example ProbCover script
+```
+cd deep-al/tools
+python train_al.py --cfg ../configs/cifar10/al/RESNET18.yaml --al probcover --exp-name auto --initial_size 0 --budget 10 --delta 0.75
 cd ../../
 ```
