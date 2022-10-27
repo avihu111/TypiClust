@@ -77,6 +77,7 @@ class TypiClust:
                           }
             fname = fname_dict[self.ds_name]
             self.features = np.load(fname)
+            self.features = features / np.linalg.norm(features, axis=1, keepdims=True)
             self.clusters = kmeans(self.features, num_clusters=num_clusters)
         print(f'Finished clustering into {num_clusters} clusters.')
 

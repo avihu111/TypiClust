@@ -60,7 +60,7 @@ def argparser():
     parser.add_argument('--initial_size', help='Size of the initial random labeled set', default=0, type=int)
     parser.add_argument('--seed', help='Random seed', default=1, type=int)
     parser.add_argument('--finetune', help='Whether to continue with existing model between rounds', type=str2bool, default=False)
-    parser.add_argument('--linear_from_features', help='Whether to use a linear layer from self-supervised features', type=str2bool, default=False)
+    parser.add_argument('--linear_from_features', help='Whether to use a linear layer from self-supervised features', action='store_true')
     parser.add_argument('--delta', help='Relevant only for ProbCover', default=0.6, type=float)
 
     return parser
@@ -103,7 +103,7 @@ def main(cfg):
     # E.g., output/CIFAR10/resnet18/{timestamp or cfg.EXP_NAME based on arguments passed}
     if cfg.EXP_NAME == 'auto':
         now = datetime.now()
-        exp_dir = f'{now.year}_{now.month}_{now.day}_{now.hour}{now.minute}{now.second}'
+        exp_dir = f'{now.year}_{now.month}_{now.day}_{now.hour:02}{now.minute:02}{now.second:02}_{now.microsecond}'
     else:
         exp_dir = cfg.EXP_NAME
 

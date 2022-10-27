@@ -28,6 +28,9 @@ pycls/datasets/data/
 # Other
 logs/
 scratch*
+*.out
 
 output/
 *.ipynb_checkpoints/
+data/
+scan/results/

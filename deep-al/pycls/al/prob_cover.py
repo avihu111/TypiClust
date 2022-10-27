@@ -81,6 +81,7 @@ class ProbCover:
             degrees = np.bincount(cur_df.x, minlength=len(self.relevant_indices))
             print(f'Iteration is {i}.\tGraph has {len(cur_df)} edges.\tMax degree is {degrees.max()}.\tCoverage is {coverage:.3f}')
             cur = degrees.argmax()
+            # cur = np.random.choice(degrees.argsort()[::-1][:5]) # the paper randomizes selection
 
             # removing incoming edges to newly covered samples
             new_covered_samples = cur_df.y[(cur_df.x == cur)].values
