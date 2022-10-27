@@ -2,6 +2,7 @@ import torch
 import torchvision
 from PIL import Image
 import numpy as np
+import pycls.datasets.utils as ds_utils
 
 
 class CIFAR10(torchvision.datasets.CIFAR10):
@@ -10,11 +11,7 @@ class CIFAR10(torchvision.datasets.CIFAR10):
         self.test_transform = test_transform
         self.no_aug = False
         self.only_features = only_features
-        if train:
-            fname = '../../scan/results/cifar-10/pretext/features_seed1.npy'
-        else:
-            fname = '../../scan/results/cifar-10/pretext/test_features_seed1.npy'
-        self.features = np.load(fname)
+        self.features = ds_utils.load_features("CIFAR10", train=train, normalized=False)
 
 
     def __getitem__(self, index: int):
@@ -50,11 +47,7 @@ class CIFAR100(torchvision.datasets.CIFAR100):
         self.test_transform = test_transform
         self.no_aug = False
         self.only_features = only_features
-        if train:
-            fname = '../../scan/results/cifar-100/pretext/features_seed1.npy'
-        else:
-            fname = '../../scan/results/cifar-100/pretext/test_features_seed1.npy'
-        self.features = np.load(fname)
+        self.features = ds_utils.load_features("CIFAR100", train=train, normalized=False)
 
     def __getitem__(self, index: int):
         """

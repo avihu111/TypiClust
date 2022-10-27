@@ -1,14 +1,14 @@
 import numpy as np
 import pandas as pd
 import torch
-
+import pycls.datasets.utils as ds_utils
 
 class ProbCover:
     def __init__(self, cfg, lSet, uSet, budgetSize, delta):
         self.cfg = cfg
         self.ds_name = self.cfg['DATASET']['NAME']
         self.seed = self.cfg['RNG_SEED']
-        self.all_features = self.load_features()
+        self.all_features = ds_utils.load_features(self.ds_name, self.seed)
         self.lSet = lSet
         self.uSet = uSet
         self.budgetSize = budgetSize
@@ -16,18 +16,6 @@ class ProbCover:
         self.relevant_indices = np.concatenate([self.lSet, self.uSet]).astype(int)
         self.rel_features = self.all_features[self.relevant_indices]
         self.graph_df = self.construct_graph()
-
-    def load_features(self):
-        fname_dict = {'CIFAR10': f'../../scan/results/cifar-10/pretext/features_seed{self.seed}.npy',
-                      'CIFAR100': f'../../scan/results/cifar-100/pretext/features_seed{self.seed}.npy',
-                      'TINYIMAGENET': f'../../scan/results/tiny-imagenet/pretext/features_seed{self.seed}.npy',
-                      'IMAGENET50': '../../../dino/runs/trainfeat.pth',
-                      'IMAGENET100': '../../../dino/runs/trainfeat.pth',
-                      'IMAGENET200': '../../../dino/runs/trainfeat.pth',
-                      }
-        fname = fname_dict[self.ds_name]
-        features = np.load(fname)
-        return features / np.linalg.norm(features, axis=1, keepdims=True)
 
     def construct_graph(self, batch_size=500):
         """

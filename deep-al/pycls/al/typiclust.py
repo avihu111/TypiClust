@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 import faiss
 from sklearn.cluster import MiniBatchKMeans, KMeans
+import pycls.datasets.utils as ds_utils
 
 def get_nn(features, num_neighbors):
     # calculates nearest neighbors on GPU
@@ -68,16 +69,7 @@ class TypiClust:
             self.features = np.load(fname)
             self.clusters = np.load(fname.replace('features', 'probs')).argmax(axis=-1)
         else:
-            fname_dict = {'CIFAR10': f'../../scan/results/cifar-10/pretext/features_seed{self.seed}.npy',
-                          'CIFAR100': f'../../scan/results/cifar-100/pretext/features_seed{self.seed}.npy',
-                          'TINYIMAGENET': f'../../scan/results/tiny-imagenet/pretext/features_seed{self.seed}.npy',
-                          'IMAGENET50': '../../../dino/runs/trainfeat.pth',
-                          'IMAGENET100': '../../../dino/runs/trainfeat.pth',
-                          'IMAGENET200': '../../../dino/runs/trainfeat.pth',
-                          }
-            fname = fname_dict[self.ds_name]
-            self.features = np.load(fname)
-            self.features = features / np.linalg.norm(features, axis=1, keepdims=True)
+            self.features = ds_utils.load_features(self.ds_name, self.seed)
             self.clusters = kmeans(self.features, num_clusters=num_clusters)
         print(f'Finished clustering into {num_clusters} clusters.')
 
