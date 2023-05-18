@@ -42,10 +42,10 @@ When this finishes, the file `./results/cifar-10/pretext/features_seed1.npy` sho
 
 To save time, you can download the features of CIFAR-10/100 from here:
 
-| Dataset          | Download link |
-|------------------|---------------| 
-|CIFAR10           | [Download](https://drive.google.com/file/d/1Le1ZuZOpfxBfxL3nnNahZcCt-lLWLQSB/view?usp=sharing)  |
-|CIFAR100          | [Download](https://drive.google.com/file/d/1o2nz_SKLdcaTCB9XVA44qCTVSUSmktUb/view?usp=sharing)  |
+| Dataset          | Download link train| Download link test|
+|------------------|---------------| ---------------|
+|CIFAR10           | [Download](https://drive.google.com/file/d/1Le1ZuZOpfxBfxL3nnNahZcCt-lLWLQSB/view?usp=sharing)  | [Download](https://drive.google.com/file/d/1J7FKRYm28Lik-A3Q0n7vu19JLCGFWIOu/view?usp=sharing)  |
+|CIFAR100          | [Download](https://drive.google.com/file/d/1o2nz_SKLdcaTCB9XVA44qCTVSUSmktUb/view?usp=sharing)  | [Download](https://drive.google.com/file/d/1iR54Vqg7WhzHzIN84jRbCHpZfqsCW2Vl/view?usp=sharing)  |
 
 
 and locate the files here:`./results/cifar-10/pretext/features_seed1.npy`.
