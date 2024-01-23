@@ -533,7 +533,6 @@ def test_epoch(test_loader, model, test_meter, cur_epoch):
 if __name__ == "__main__":
     args = argparser().parse_args()
     cfg.merge_from_file(args.cfg_file)
-    cfg.merge_from_file(args.cfg_file)
     cfg.EXP_NAME = args.exp_name
     cfg.ACTIVE_LEARNING.SAMPLING_FN = args.al
     cfg.ACTIVE_LEARNING.BUDGET_SIZE = args.budget
