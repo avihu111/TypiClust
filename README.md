@@ -74,7 +74,6 @@ Please consider citing their work and ours:
   journal={arXiv preprint arXiv:2205.11320},
   year={2022}
 }
-}
 ```
 
 ## License
