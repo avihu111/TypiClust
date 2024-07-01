@@ -40,6 +40,10 @@ plot_epoch_yvalues = []
 plot_it_x_values = []
 plot_it_y_values = []
 
+delta_avg_lst = []
+delta_std_lst = []
+
+
 def str2bool(v):
     if isinstance(v, bool):
         return v
@@ -61,7 +65,9 @@ def argparser():
     parser.add_argument('--seed', help='Random seed', default=1, type=int)
     parser.add_argument('--finetune', help='Whether to continue with existing model between rounds', type=str2bool, default=False)
     parser.add_argument('--linear_from_features', help='Whether to use a linear layer from self-supervised features', action='store_true')
-    parser.add_argument('--delta', help='Relevant only for ProbCover', default=0.6, type=float)
+    parser.add_argument('--initial_delta', help='Relevant only for ProbCover and DCoM', default=0.6, type=float)
+    parser.add_argument('--k_logistic', default=50, type=int)
+    parser.add_argument('--a_logistic', default=0.8, type=float)
 
     return parser
 
@@ -75,7 +81,6 @@ def is_eval_epoch(cur_epoch):
 
 
 def main(cfg):
-
     # Setting up GPU args
     use_cuda = (cfg.NUM_GPUS > 0) and torch.cuda.is_available()
     device = torch.device("cuda" if use_cuda else "cpu")
@@ -141,7 +146,14 @@ def main(cfg):
     lSet, uSet, valSet = data_obj.loadPartitions(lSetPath=cfg.ACTIVE_LEARNING.LSET_PATH, \
             uSetPath=cfg.ACTIVE_LEARNING.USET_PATH, valSetPath = cfg.ACTIVE_LEARNING.VALSET_PATH)
     model = model_builder.build_model(cfg).cuda()
+
     if len(lSet) == 0:
+        if cfg.ACTIVE_LEARNING.SAMPLING_FN.lower() in ['dcom']:
+            print('Labeled Set is Empty - Create and save the first delta values list')
+            lSet_deltas = [str(cfg.ACTIVE_LEARNING.INITIAL_DELTA)] * cfg.ACTIVE_LEARNING.BUDGET_SIZE
+            cfg.ACTIVE_LEARNING.DELTA_LST = lSet_deltas
+            delta_avg_lst.append(cfg.ACTIVE_LEARNING.INITIAL_DELTA)
+
         print('Labeled Set is Empty - Sampling an Initial Pool')
         al_obj = ActiveLearning(data_obj, cfg)
         activeSet, new_uSet = al_obj.sample_from_uSet(model, lSet, uSet, train_data)
@@ -210,6 +222,31 @@ def main(cfg):
             data_obj.saveSet(uSet, 'uSet', cfg.EPISODE_DIR)
             break
 
+        # DCoM's delta-s updating
+        if cfg.ACTIVE_LEARNING.SAMPLING_FN.lower() in ["dcom"]:
+            print("======== Update the deltas dynamically ========\n")
+            from pycls.al.DCoM import DCoM
+            al_algo = DCoM(cfg, lSet, uSet, budgetSize=cfg.ACTIVE_LEARNING.BUDGET_SIZE,
+                                    max_delta=cfg.ACTIVE_LEARNING.MAX_DELTA,
+                                    lSet_deltas=cfg.ACTIVE_LEARNING.DELTA_LST)
+
+            lSet_labels = np.take(train_data.targets, np.asarray(lSet, dtype=np.int64))
+            all_images_idx = np.array(list(lSet) + list(uSet))
+            images_loader = data_obj.getSequentialDataLoader(indexes=all_images_idx,
+                                                    batch_size=cfg.TRAIN.BATCH_SIZE, data=train_data)
+            all_labels = np.take(train_data.targets, np.asarray(all_images_idx, dtype=np.int64))
+
+            images_pseudo_labels = get_label_from_model(images_loader, checkpoint_file, cfg)
+            cfg.ACTIVE_LEARNING.DELTA_LST[
+            -1 * cfg.ACTIVE_LEARNING.BUDGET_SIZE:] = al_algo.new_centroids_deltas(lSet_labels,
+                                                                          all_labels=all_labels,
+                                                                          pseudo_labels=images_pseudo_labels,
+                                                                          budget=cfg.ACTIVE_LEARNING.BUDGET_SIZE)
+
+            delta_lst_float = [np.float(delta) for delta in cfg.ACTIVE_LEARNING.DELTA_LST]
+            delta_avg_lst.append(np.average(delta_lst_float))
+            delta_std_lst.append(np.std(delta_lst_float))
+
         # Active Sample 
         print("======== ACTIVE SAMPLING ========\n")
         logger.info("======== ACTIVE SAMPLING ========\n")
@@ -233,6 +270,16 @@ def main(cfg):
         logger.info("Active Sampling Complete. After Episode {}:\nNew Labeled Set: {}, New Unlabeled Set: {}, Active Set: {}\n".format(cur_episode, len(lSet), len(uSet), len(activeSet)))
         print("================================\n\n")
         logger.info("================================\n\n")
+
+        # add avg delta to cfg.ACTIVE_LEARNING.DELTA_LST towards the next active sampling
+        if cfg.ACTIVE_LEARNING.SAMPLING_FN.lower() in ['dcom']:
+            delta_lst_float = [np.float(delta) for delta in cfg.ACTIVE_LEARNING.DELTA_LST]
+            next_initial_deltas = [str(round(np.average(delta_lst_float), 2))] * cfg.ACTIVE_LEARNING.BUDGET_SIZE
+            cfg.ACTIVE_LEARNING.DELTA_LST.extend(next_initial_deltas)
+            print("Current delta list: ", cfg.ACTIVE_LEARNING.DELTA_LST)
+            print("Current delta avg list: ", delta_avg_lst)
+            print("Current delta std list: ", delta_std_lst)
+        print('Current accuracy values: ', plot_episode_yvalues)
 
         if not cfg.ACTIVE_LEARNING.FINE_TUNE:
             # start model from scratch
@@ -473,6 +520,18 @@ def train_epoch(train_loader, model, loss_fun, optimizer, train_meter, cur_epoch
     return loss, clf_iter_count
 
 
+def get_label_from_model(images_loader, checkpoint_file, cfg, model=None):
+    """
+    returns the labels of the images according to the checkpoint file model
+    """
+    get_label_meter = TestMeter(len(images_loader))
+    if model is None:
+        model = model_builder.build_model(cfg)
+        model = cu.load_checkpoint(checkpoint_file, model)
+
+    pred = get_label_epoch(images_loader, model, get_label_meter)
+    return pred
+
 @torch.no_grad()
 def test_epoch(test_loader, model, test_meter, cur_epoch):
     """Evaluates the model on the test set."""
@@ -528,6 +587,29 @@ def test_epoch(test_loader, model, test_meter, cur_epoch):
 
     return misclassifications/totalSamples
 
+@torch.no_grad()
+def get_label_epoch(images_loader, model, get_label_meter):
+    """get labels according to the model."""
+    if torch.cuda.is_available():
+        model.cuda()
+
+    # Enable eval mode
+    model.eval()
+    get_label_meter.iter_tic()
+
+    all_preds = []
+    for cur_iter, (inputs, _) in enumerate(images_loader):
+        with torch.no_grad():
+            # Transfer the data to the current GPU device
+            inputs = inputs.cuda().type(torch.cuda.FloatTensor)
+            # Compute the predictions
+            preds = model(inputs)
+            all_preds += preds
+
+    final_preds = [torch.argmax(p).item() for p in all_preds]
+    model.train()
+
+    return final_preds
 
 
 if __name__ == "__main__":
@@ -536,8 +618,9 @@ if __name__ == "__main__":
     cfg.EXP_NAME = args.exp_name
     cfg.ACTIVE_LEARNING.SAMPLING_FN = args.al
     cfg.ACTIVE_LEARNING.BUDGET_SIZE = args.budget
-    cfg.ACTIVE_LEARNING.DELTA = args.delta
+    cfg.ACTIVE_LEARNING.INITIAL_DELTA = args.initial_delta
     cfg.RNG_SEED = args.seed
     cfg.MODEL.LINEAR_FROM_FEATURES = args.linear_from_features
-
+    cfg.ACTIVE_LEARNING.A_LOGISTIC = args.a_logistic
+    cfg.ACTIVE_LEARNING.K_LOGISTIC = args.k_logistic
     main(cfg)

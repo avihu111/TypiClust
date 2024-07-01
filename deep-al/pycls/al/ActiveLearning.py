@@ -82,8 +82,15 @@ class ActiveLearning:
         elif self.cfg.ACTIVE_LEARNING.SAMPLING_FN.lower() in ["prob_cover", 'probcover']:
             from .prob_cover import ProbCover
             probcov = ProbCover(self.cfg, lSet, uSet, budgetSize=self.cfg.ACTIVE_LEARNING.BUDGET_SIZE,
-                            delta=self.cfg.ACTIVE_LEARNING.DELTA)
+                            delta=self.cfg.ACTIVE_LEARNING.INITIAL_DELTA)
             activeSet, uSet = probcov.select_samples()
+
+        elif self.cfg.ACTIVE_LEARNING.SAMPLING_FN.lower() in ["dcom"]:
+            from .DCoM import DCoM
+            dcom = DCoM(self.cfg, lSet, uSet, budgetSize=self.cfg.ACTIVE_LEARNING.BUDGET_SIZE,
+                        max_delta=self.cfg.ACTIVE_LEARNING.MAX_DELTA,
+                        lSet_deltas=self.cfg.ACTIVE_LEARNING.DELTA_LST)
+            activeSet, uSet = dcom.select_samples(clf_model, trainDataset, self.dataObj)
 
         elif self.cfg.ACTIVE_LEARNING.SAMPLING_FN == "dbal" or self.cfg.ACTIVE_LEARNING.SAMPLING_FN == "DBAL":
             activeSet, uSet = self.sampler.dbal(budgetSize=self.cfg.ACTIVE_LEARNING.BUDGET_SIZE, \

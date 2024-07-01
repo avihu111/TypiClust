@@ -1,9 +1,9 @@
-# Typiclust and ProbCover Official Code Repository
+# Typiclust, ProbCover & DCoM Official Code Repository
 
 
 This is the official implementation for the papers **Active Learning on a Budget - Opposite Strategies Suit High and Low Budgets** and **Active Learning Through a Covering Lens**. 
 
-This code implements TypiClust and ProbCover - Simple and Effective Low Budget Active Learning methods.
+This code implements TypiClust, ProbCover and DCoM - Simple and Effective Low Budget Active Learning methods.
 ## Typiclust
 
 [**Arxiv link**](https://arxiv.org/abs/2202.02794), 
@@ -41,6 +41,18 @@ ProbCover results in the Semi-Supervised training framework
 
 <img src="./probcover_semi.png" height="220">
 
+## DCoM
+
+DCoM employs a representation learning approach. Initially, a $\Delta_{\text{avg}}$-radius ball is placed around each point. From these, a subset of $b$ balls is chosen based on their coverage of the most points, with the centers of these balls selected as the samples to be labeled. After training the model, the $\Delta$ list is updated according to the purity of the balls to achieve more accurate radii and coverage. DCoM utilizes this coverage to determine the competence score, which balances typicality and uncertainty.
+
+Comparison of DCoM's selection process with ProbCover
+
+<img src="./probcover_dcom_rep.png" height="300">
+
+DCoM results in the Semi-Supervised training framework
+
+<img src="./dcom_semi.png" height="150">
+
 ## Usage
 
 Please see [`USAGE`](USAGE.md) for brief instructions on installation and basic usage examples.
@@ -61,6 +73,7 @@ Please consider citing their work and ours:
   author = {Yehuda, Ofer and Dekel, Avihu and Hacohen, Guy and Weinshall, Daphna},
   journal={arXiv preprint arXiv:2205.11320},
   year={2022}
+}
 }
 ```
 

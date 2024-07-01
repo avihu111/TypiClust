@@ -194,6 +194,8 @@ _C.ACTIVE_LEARNING.N_BINS = 500 # Used by UC_uniform
 _C.ACTIVE_LEARNING.DROPOUT_ITERATIONS = 25 # Used by DBAL and BALD
 _C.ACTIVE_LEARNING.INIT_L_RATIO = 0.1 # Initial labeled pool ration
 _C.ACTIVE_LEARNING.MAX_ITER = 5 # Max AL iterations
+_C.ACTIVE_LEARNING.MAX_DELTA = 1.1 # Max Delta for DCoM algorithm
+_C.ACTIVE_LEARNING.DELTA_RESOLUTION = 0.05 # Delta resolution for the binary search in DCoM algorithm
 _C.ACTIVE_LEARNING.FINE_TUNE = True # continue after AL from existing model or from scratch
 
 # ---------------------------------------------------------------------------- #
