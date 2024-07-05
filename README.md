@@ -79,7 +79,7 @@ Please consider citing their work and ours:
       title={DCoM: Active Learning for All Learners}, 
       author={Mishal, Inbal and Weinshall, Daphna},
       journal={arXiv preprint arXiv:2407.01804},
-      year={2024},
+      year={2024}
 }
 ```
 
