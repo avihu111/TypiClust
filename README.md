@@ -74,6 +74,13 @@ Please consider citing their work and ours:
   journal={arXiv preprint arXiv:2205.11320},
   year={2022}
 }
+
+@article{mishal2024dcom,
+      title={DCoM: Active Learning for All Learners}, 
+      author={Mishal, Inbal and Weinshall, Daphna},
+      journal={arXiv preprint arXiv:2407.01804},
+      year={2024},
+}
 ```
 
 ## License
