@@ -23,7 +23,7 @@ Selection of 10 samples from a GMM:
 
 TypiClust Results summary
 
-<img src="./results.png" height="220">
+<img src="./results.png" height="260">
 
 ## Probability Cover
 
@@ -45,9 +45,13 @@ ProbCover results in the Semi-Supervised training framework
 
 DCoM employs a representation learning approach. Initially, a $\Delta_{\text{avg}}$-radius ball is placed around each point. The $\Delta$ list provides a specific radius for each labeled example individually. From these, a subset of $b$ balls is chosen based on their coverage of the most points, with the centers of these balls selected as the samples to be labeled. After training the model, the $\Delta$ list is updated according to the purity of the balls to achieve more accurate radii and coverage. DCoM utilizes this coverage to determine the competence score, which balances typicality and uncertainty.
 
-Comparison of DCoM's selection process with ProbCover
+Illustration of DCoM's $\Delta$ updating
 
-<img src="./probcover_dcom_rep.png" height="300">
+<img src="./dcom_delta_updating.gif" height="500">
+
+DCoM results in the Supervised training framework
+
+<img src="./dcom_supervised.png" height="500">
 
 DCoM results in the Semi-Supervised training framework
 
