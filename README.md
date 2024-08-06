@@ -23,7 +23,7 @@ Selection of 10 samples from a GMM:
 
 TypiClust Results summary
 
-<img src="./results.png" height="260">
+<img src="./results.png" height="220">
 
 ## Probability Cover
 
@@ -47,7 +47,7 @@ DCoM employs a representation learning approach. Initially, a $\Delta_{\text{avg
 
 Illustration of DCoM's $\Delta$ updating
 
-<img src="./dcom_delta_updating.gif" height="500">
+<img src="./dcom_delta_updating.gif" height="260">
 
 DCoM results in the Supervised training framework
 
