@@ -42,6 +42,7 @@ ProbCover results in the Semi-Supervised training framework
 <img src="./probcover_semi.png" height="220">
 
 ## DCoM
+[**Arxiv link**](https://arxiv.org/abs/2407.01804)
 
 DCoM employs a representation learning approach. Initially, a $\Delta_{\text{avg}}$-radius ball is placed around each point. The $\Delta$ list provides a specific radius for each labeled example individually. From these, a subset of $b$ balls is chosen based on their coverage of the most points, with the centers of these balls selected as the samples to be labeled. After training the model, the $\Delta$ list is updated according to the purity of the balls to achieve more accurate radii and coverage. DCoM utilizes this coverage to determine the competence score, which balances typicality and uncertainty.
 
